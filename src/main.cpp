@@ -22,6 +22,7 @@ int wd;
 char text [] = "ctag";
 unsigned short int lightLevel;
 unsigned int fadeDelay = 150;
+const short int sensorFactor = 55;
 //const char lumino[] = "123456789abcdefg";
 
 //#define DEBUG
@@ -72,17 +73,23 @@ while (1)
   {
     delay(fadeDelay);
     HT1632.setBrightness(lightLevel);
-    if ((lightLevel*60) >= (analogRead(pinLightSensor)))
+    if ((lightLevel*sensorFactor) >= ((unsigned int)analogRead(pinLightSensor)))
     {
       break;
     }
   }
-
   delay(500);
+
   // Keep lit while motion is detected
   while (digitalRead(pinMotionInterrupt) == HIGH)
   {
-    delay(100);
+      short unsigned int sensor_tmp = analogRead(pinLightSensor);
+      if ((lightLevel*sensorFactor) >= (sensor_tmp+sensorFactor) || (lightLevel*sensorFactor) <= (sensor_tmp))
+      {
+        lightLevel = floor(sensor_tmp/sensorFactor);
+        HT1632.setBrightness(lightLevel);
+      }
+    delay(50);
   }
   delay(500);
 
